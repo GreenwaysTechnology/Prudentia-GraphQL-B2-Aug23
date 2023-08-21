@@ -1,0 +1,535 @@
+				GraphQL
+.....................................................................................
+
+What is GraphQL?
+	GraphQL is a "new API" standard that provides a more efficient, powerful and flexible alternative to REST.
+
+API:
+ Appliation programming interface :
+   Entry and exit point for data access.
+
+How apis are represented /encapsulated?
+ inside objects
+
+Types of apis:
+ 1.local api
+	api which is part of single runtime- jvm
+ 2.remote api
+       rpc
+	 -webservices -  rest api,soap api
+         -rpi - grpc
+         -tcp based apps
+         -smtp based app
+       etc...
+
+WebServices:
+  Program which has api , which is accessed by other program via http protocal.
+
+XML based Webservice:(HTTP+SOAP):Soap webservices
+Data Independant based Webservice(any type of data format): JSON/XML/PDF etc...
+ RESTFull WebServices.
+
+Rest uses HTTP as default transport protocal which does not use any other app protcal like soap.
+
+Rest spec is based on spec called REST spec
+https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
+
+REST:
+   REST has not been designed to be 'user centric' rather than data centric...
+
+if you define any api, which returns data set eg: if you query an api called products
+
+products may have so many fields, i dont want all fields which exposed by the api...
+
+GET  /api/products
+
+ =>[{
+  ...
+ }]
+
+Since REST not able to solve all types of user biz requirements, facebook was looking another solution to get data based "user centeric" not based on "data centeric"
+		         The birth of GraphQL
+
+At its core, GraphQL enables "declarative data fetching" where a client can specify exactly what data it needs from an API.
+
+ "Instead of multiple endpoints that return fixed data structures", a GraphQL server only exposes a single endpoint and responds with precisely the data a client asked for.
+
+ GraphQL one End Point for "Enter domain",Each Domain has its own CURD operations
+
+
+				     |-------Product -Read,Save,Update,Delete
+				     |-------Customer-Read,Save,Update,Delete
+  Client-------Single Endpoint ------|-------Payment-Read,Save,Update,Delete
+				     |-------Inventory-Read,Save,Update,Delete
+	
+
+REST endpoints:
+
+GET /api/products
+POST /api/products
+PUT /api/products/id
+DELETE /api/products/id
+
+GET /api/customers
+POST /api/customers
+PUT /api/customers/id
+DELETE /api/customers/id
+
+
+How GraphQL works?
+
+Graph means connected Nodes
+QL means Query langugage - You might have heard in databases like SQL
+.....................................................................................
+			  How to begin with GraphQL
+
+
+GraphQL is platform and language independant.
+
+GraphQL Can be classified into two category
+
+1.Client side - How to send data(Request) to the GraphQL server.
+  in order to send data from the client face book published one spec called
+   "GraphQL Query language spec"
+
+2.Server side - How to build graph(object tree) from the data sources
+    "GraphQL Schema language spec"
+
+.....................................................................................
+		   Request and Response Model in REST
+
+http
+ GET   /api/customers-----------> REST server
+            <-------JSON/XML/PDF/etc....
+
+
+ POST   /api/customers-----------> REST server
+            <-------JSON/XML/PDF/etc....
+
+.....................................................................................			   GraphQL request and response model.
+
+Declarative Programming:
+
+What you write, you have to get the same structure.
+
+The Query request is more readable,declarative. WHich micics the javascript object literal syntax.
+
+js object:
+
+ let user =  {
+     id:1,
+     name:'joe'
+     friends: [
+        'bar','foo'
+     ]
+  } 
+
+GraphQL basic request structure
+
+GraphQL Request payload : GraphQL Query
+.......................................
+
+GraphQL Client 
+
+POST /endpoint
+  {
+     id
+     name
+     friends { ------------------------------>GraphQL Server
+	name
+     }
+  } 
+Response:JSON
+ {
+     "id":1,
+     "name":"joe"
+     "friends": [      <----------------------------- GraphQLAPIServer
+        "bar","foo"
+     ]
+  } 
+..............................................................................................
+				 REST AND CURD
+
+Operations Type
+
+GET ------Read
+POST -----CREATE
+PUT ------UPDATE
+DELETE----Remove
+.....................................................................................
+.............................................................................................				GRAPHQL And CURD
+
+
+GraphQL uses only URL which exposes Service
+
+
+  {
+     id
+     name
+     friends { -----------HTTP POST------------------> GraphQLServer
+        name
+     }
+  } 
+
+Since we have only one end point, how to Identify the different operations like create,read,update,delete.
+
+Thats where graphql offers "client language called GraphQL Query language"........
+
+GraphQL language offers syntax.
+
+
+Operation Types:
+
+1.Query
+  read
+2.mutation
+  create,update,delete
+3.subscription
+   Streaming
+
+query - a read only fetch
+mutation- a write followed by read
+subscription- a long live request that fetches data in response to source events
+....................................................................................
+			GraphQL Query language spec
+
+
+We are going to use "MOCK GraphQL API/service".
+
+Tool to test graphql end points:
+1.client tool - playground
+https://www.graphqlbin.com/v2/new
+https://www.apollographql.com/docs/apollo-server/v2/testing/graphql-playground/
+
+2.demo api
+https://countries.trevorblades.com/
+
+Concepts:
+ => fields
+ => arguments
+ => aliases
+ => fragements
+ => variables
+ => directives
+ => Mutations
+ => inline fragments
+
+1.selection set
+
+ selectionSet : { Selection }
+
+selectionSet could be "query,mutation,subscription"
+
+Selection:
+ -fields
+ -Fragement Spread
+ -lnline fragement.
+
+fields:
+query { 
+   person {
+    firstname =====>POST --------------------->Graphql server---execute
+    lastname
+   }
+}
+Selection set to be selected by somebody(Operation)
+
+An Operation selects the set of information it needs, exactly will receive that information
+
+Operation and Selection Set
+
+//read =>GET
+query {
+ firstname
+  lastname
+  age
+}
+//Write
+mutation createUser(params){
+  user
+}
+//streaming
+subscription getPriceQuote(params) {
+ price
+ name
+}
+
+Fields: 
+........
+At its simplest, GraphQL is about asking for specific fields on objects. 
+Let's start by looking at a very simple query and the result we get when we run it:
+
+Are properties of an object.
+
+eg:
+
+query {
+  countries {
+     name
+  }
+}
+
+Response:
+{
+  "data": {
+    "countries": [
+      {
+    
+        "name": "Andorra"
+      },
+      {
+      
+        "name": "United Arab Emirates"
+      },
+      {
+        
+        "name": "Afghanistan"
+      },
+     
+    ]
+  }
+}
+
+short cut:
+ without using query keyword.
+
+{
+  countries {
+    name
+  }
+}
+More fields:
+ How do we know that the api has more fields?
+ In the playground , we can see docs.by looking docs we can come to know the fields
+
+{
+  countries {
+    code
+    name
+    native
+    capital
+    currency
+  }
+}
+
+Response
+{
+  "data": {
+    "countries": [
+      {
+        "code": "AD",
+        "name": "Andorra",
+        "native": "Andorra",
+        "capital": "Andorra la Vella",
+        "currency": "EUR"
+      },
+      {
+        "code": "AE",
+        "name": "United Arab Emirates",
+        "native": "دولة الإمارات العربية المتحدة",
+        "capital": "Abu Dhabi",
+        "currency": "AED"
+      },
+}
+.......
+
+Query with QueryHeader:
+
+query getAllCountries {
+  countries {
+    name
+    code
+  }
+}
+Here getAllCountries is called Query Header
+
+How to Query Nested values?
+
+query getAllCountries {
+  countries {
+    code
+    name
+    capital
+    continent {
+      code
+      name
+    }
+    states {
+      code
+      country {
+        name
+      }
+    }
+  }
+}
+
+Response:
+
+{
+  "data": {
+    "countries": [
+      {
+        "code": "AD",
+        "name": "Andorra",
+        "capital": "Andorra la Vella",
+        "continent": {
+          "code": "EU",
+          "name": "Europe"
+        },
+        "states": []
+      },
+      {
+        "code": "AE",
+        "name": "United Arab Emirates",
+        "capital": "Abu Dhabi",
+        "continent": {
+          "code": "AS",
+          "name": "Asia"
+        },
+        "states": []
+      },
+      {
+        "code": "AF",
+        "name": "Afghanistan",
+        "capital": "Kabul",
+        "continent": {
+          "code": "AS",
+          "name": "Asia"
+        },
+        "states": []
+      },
+      {
+        "code": "AG",
+        "name": "Antigua and Barbuda",
+        "capital": "Saint John's",
+        "continent": {
+          "code": "NA",
+          "name": "North America"
+        },
+        "states": []
+      },
+      {
+        "code": "AI",
+        "name": "Anguilla",
+        "capital": "The Valley",
+        "continent": {
+          "code": "NA",
+          "name": "North America"
+        },
+        "states": []
+      },
+      {
+        "code": "AL",
+        "name": "Albania",
+        "capital": "Tirana",
+        "continent": {
+          "code": "EU",
+          "name": "Europe"
+        },
+        "states": []
+      },
+      {
+        "code": "AM",
+        "name": "Armenia",
+        "capital": "Yerevan",
+        "continent": {
+          "code": "AS",
+          "name": "Asia"
+        },
+        "states": []
+      }
+]
+....................................................................................
+				Arguments and parameters
+....................................................................................
+
+What if i want to get data based on some condition or conditions...
+
+Syntax:
+ query getHuman {
+      human(id:"1000") {
+	name
+        age
+       }  
+ }
+
+Here we query data for human having id 1000.
+
+Args can be static or dynamic arg
+
+
+eg: Static or hardcoded arg:
+
+query getCountryByCode {
+   country(code: "US") {
+      name
+   }
+}
+Response:
+{
+  "data": {
+    "country": {
+      "name": "United States"
+    }
+  }
+}
+.....................................................................................
+			 Dynamic Parameters and Arguments
+.....................................................................................
+Variables:
+  Variables are place holders to have dynamic values.
+  In case of client apps, you may select values from dropdown or from text field.
+
+How to use variables?
+  Variables are introduced with $VariableName convention.
+
+Steps:
+1.Declare the variable ($VariableName) with data type as part of Query header.
+ Data types We can talk later.
+
+Syntax:
+ query queryHeader($variableName:Type) {
+      api(variable:$variableName) {
+	 fields
+      }
+ 
+ }
+eg:
+query getCountryByCode($code: ID!) {
+  country(code: $code) {
+    name
+  }
+}
+
+Here $code is variable which could be any thing.
+ID is data type which is "Serialized string"
+ID! cant be null.
+
+Passing variables with values via "Query variables section in Playground
+
+{
+  "code": "MX"
+}
+
+Response:
+{
+  "data": {
+    "country": {
+      "name": "Mexico"
+    }
+  }
+}
+
+Basic parameter Data types:
+1.Primitives (Scalar types)
+   ID,String,Int,Float,Boolean
+2.Complex types (Object types)
+   Objects- Customer,Country,Language
+   Input -Special Complex type to define input parameters which is eq "DTO"
+
+
+
+
+
+
+
