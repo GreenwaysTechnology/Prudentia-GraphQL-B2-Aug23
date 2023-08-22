@@ -528,6 +528,325 @@ Basic parameter Data types:
    Input -Special Complex type to define input parameters which is eq "DTO"
 
 
+How to pass complex types /input types?
+
+eg:
+query getLanguageInfo($filter: LanguageFilterInput) {
+  languages(filter: $filter) {
+    code
+    name
+    native
+    rtl
+  }
+}
+
+variables:
+{
+  "filter": {
+    "code": {
+      "eq": "en"
+    }
+  }
+}
+............................******************......................................
+				 Aliases
+
+Field alisases gives a dummy name for keys...
+
+Syntax:
+Without aliases:
+
+{ 
+
+ user(id:1) {
+    id
+    name
+ }
+
+}
+
+{
+  "data": {
+    "user" : {
+      "id" :1
+      "name": "Subramaian"
+    }
+  }
+}
+
+With aliases:
+{ 
+
+ subu:user(id:1) {
+    id
+    name
+ }
+
+}
+With aliases:
+{
+  "data": {
+    "subu" : {
+      "id" :1
+      "name": "Subramaian"
+    }
+  }
+}
+eg:
+query getCountryByCode($code: ID = "US") {
+  mycountry:country(code: $code) {
+    code
+    myName:name
+    native
+    phone
+    mycontient:continent {
+      code
+      name
+    }
+    capital   
+  }
+}
+
+Response:
+{
+  "data": {
+    "mycountry": {
+      "code": "US",
+      "myName": "United States",
+      "native": "United States",
+      "phone": "1",
+      "mycontient": {
+        "code": "NA",
+        "name": "North America"
+      },
+      "capital": "Washington D.C."
+    }
+  }
+}
+....................................................................................
+			    Fragments: Resuable SelectionSet
+....................................................................................
+
+What if i have some fields , duplicated in many query apis , where fragments are used.
+
+Sytnax:
+
+Without Fragment:
+.................
+
+{
+ user(id:4) {
+
+  friends {
+    id
+    name
+    pic
+  }
+  mutualfriends {
+    id
+    name
+    pic
+  }
+ }
+}
+With Fragment:
+.................
+
+{
+  user(id:4) {
+
+  friends {
+    ...friendsFields
+  }
+  mutualfriends {
+   ...friendsFields
+  }
+ }
+
+}
+fragement friendsFields on User {
+  id
+  name
+  pic
+}
+query Countries {
+  worldcountries: countries {
+    # countryname: name
+    # phone
+    # currency
+    # capital
+    ...countryInfo
+  }
+  mycountries: countries {
+    # countryname: name
+    # phone
+    # currency
+    # capital
+    ...countryInfo
+  }
+}
+fragment countryInfo on Country {
+  countryname: name
+  phone
+  currency
+  capital
+}
+.....................................................................................
+			   Directives
+.....................................................................................
+Directives are built in functions which provides some utilties
+
+@include(if:Boolean)
+  Only include  "this field" in the result if the argument is true
+@skip(if:Boolean)
+  Skip this field if the argument is true
+
+Syntax:
+{
+  getProfile($id:Int,$withFriends:Boolean=false){
+    user {
+      name
+      pic  
+      friends @include(if:$withFriends)   {
+	name
+      }
+    }
+  }
+}
+{"id" : 5 ,"withFriends":true}
+
+eg:
+query($code: ID!, $rtl: Boolean!) {
+  language(code: $code) {
+    name
+    native @include(if: $rtl) 
+  }
+}
+
+input:
+{
+  "code": "en","rtl": false 
+}
+
+Response:
+{
+  "data": {
+    "language": {
+      "name": "English"
+    }
+  }
+}
+input:
+{
+  "code": "en","rtl": true
+}
+
+Response 
+{
+  "data": {
+    "language": {
+      "name": "English",
+      "native": "English"
+    }
+  }
+}
+
+.....................................................................................
+....................................................................................
+				Mutations
+...................................................................................
+
+How to send payload to create,update,delete
+IN REST
+
+POST=>CREATE
+PUT=>UPDATE
+DELETE=>REMOVE
+GET=>READ
+
+Mutations 
+........
+
+mutation is keyword used to create,update,remove...
+
+API url :
+https://graphqlzero.almansi.me/api
+
+CREATE:
+.......
+eg:
+mutation CreatePost(
+  $input: CreatePostInput!
+) {
+  createPost(input: $input) {
+    id
+    title
+    body
+  }
+}
+
+Query Variables:
+{
+  "input": {
+    "title": "A Very Captivating Post Title",
+    "body": "Some interesting content."
+  }
+}
+
+Response:
+
+{
+    "data": {
+        "createPost": {
+            "id": "101",
+            "title": "A Very Captivating Post Title",
+            "body": "Some interesting content."
+        }
+    }
+}
+........................
+
+Update :
+mutation UpdatePost($id: ID!,$input: UpdatePostInput!) {
+  updatePost(id: $id, input: $input) {
+    id
+    body
+  }
+}
+Query Variable
+
+{
+  "id": 1,
+  "input": {
+    "body": "Some updated content."
+  }
+}
+
+Response
+{
+  "updatePost": {
+    "id": "1",
+    "body": "Some updated content."
+  }
+}
+....................................................................................
+Delete :
+
+mutation RemovePost($id: ID!) {
+  deletePost(id: $id)
+}
+Query Variable:
+
+{
+  "id": 101
+}.
+Response:
+{
+  "deletePost": true
+}
+
+
+
 
 
 

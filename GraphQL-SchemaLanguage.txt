@@ -1,0 +1,187 @@
+.....................................................................................
+	GraphQL - Server Side : GraphQL Schema language spec and implementation
+...................................................................................
+
+How to build rest applications?
+
+ Restfull web services are built based on "resources" in the problem domain.
+
+Resource represents a Object which expose data 
+
+
+eg: CustomerResource,OrderResource,ProductResource
+Resources are identified by URL /api/customers and Method "GET | POST | PUT |DELETE "
+	
+How to build graphql applications?
+ 
+Graphql apps are built based on Objects called "Models".
+
+What ever lanaugage we have to think in terms of Objects.
+
+Object shape is described by "schema".
+
+Schema is nothing but plan /design.
+
+Schema represents the Object design
+
+In Graphql The design is represented by "GraphQL schema Lanaguage"
+.....................................................................................
+
+.....................................................................................
+			  SDL - Schema definition language
+.....................................................................................
+
+SDL Core concepts:
+
+1.Type System:
+   The Type system defines the Platform indenpendent data types and variable which describe what data can be queired by client.
+
+
+query getUserData {
+ 
+   user {
+	name             =>SDL=>|SDL|===>Enity==>Biz logic(Services)====>DataSources
+   }
+
+}
+Both Servers and clients talks via common language called SDL...
+
+SDL provides language independant abstraction
+				 
+				|---- Java/Kotlin/scala --Jvm
+			SDL-----|-----js/ts ----node
+
+
+Syntax:
+
+type TypeName {
+   field:DataType
+}
+In SDL , there is root type , every type is dervied from the root type
+
+type schema{
+  query:Query
+  mutation:Mutation
+  subscription:Subscription
+}
+type Query {
+  #apis
+}
+
+type Mutation { 
+ #apis
+}
+
+type Subscription{
+ #apis
+}
+
+Query Type:
+
+In Server Side:
+
+type Query {
+  #apis
+  greet:String
+  user:User
+  user(id:Int):User
+}
+Client Side
+query {
+ #api- sending request for invocation at server
+  greet
+}
+
+query {
+ #api
+ user {
+   id
+   name
+ }
+}
+query {
+ #api
+ user(id:1) {
+   id
+   name
+ }
+}
+
+Server side
+
+type Mutation { 
+ #apis
+ createUser(user:User):User
+}
+
+ClientSide:
+
+mutation CreateUser($user:User){
+  
+   createUser(user:$user){
+     id
+     name
+   }
+}
+SDL Defines schema language and platform independant data types:
+.............................................................
+1.Scallar types
+2.Custom Types/ReferenceTypes/Object Types
+
+
+1.Scallar Types:
+  Scallars are like primitive types in your language
+
+1.Int -32 bit signed integer
+2.String - UTF-8 char Sequence
+3.Boolean - true or false
+4.Float - singed double 
+5.ID (Serialized String)- A unique identifier
+
+2.Object Type/Complex/User Defined/Reference Type
+ Similar to classes in object oriented languages- like java,C#
+
+type User{
+  id:ID
+  firstName:String
+  lastName:String
+  age:Int
+  points:Float
+  status:Boolean  
+}
+
+
+Object Type can have other Object Type :
+  Like has a relationship/ Dependency injection
+
+type Address {
+  city:String
+  state:String
+  zipcode:String
+}
+
+type User{
+  id:ID
+  firstName:String
+  lastName:String
+  age:Int
+  points:Float
+  status:Boolean 
+  address:Address
+}
+
+type Query{ 
+  user:User
+}
+
+Client side
+query getUser{
+  user {
+   id
+   firstName
+   address {
+     city
+   } 
+  }
+}
+
