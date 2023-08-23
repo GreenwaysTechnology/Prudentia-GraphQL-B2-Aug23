@@ -1452,6 +1452,231 @@ query getSkills {
       ],
 ]
 .....................................................................................
+			Handling Args and Parameters
+....................................................................................
+
+How to handle args and parameters?
+ Resolver function takes four positional optional args.
+
+ fun(parent,args,contextValue,info){
+
+ }
+ 
+ "args" variable is going to hold parameters passed by clients.
+  args value is going to be literal object
+ How many parameters you pass, all parameters are stored inside single literal object
+
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Query{
+  hello(name:String):String
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        hello(parent, args, contextValue, info) {
+            console.log(args)
+            return `Welcome to ${args.name}`
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+ClientSide:
+query($name: String) {
+   hello(name: $name)
+}
+
+{
+  "name": "Subramanian"
+}
+
+Response:
+{
+  "data": {
+    "hello": "Welcome to Subramanian"
+  }
+}
+.....................................................................................	
+				Not Null with args and return type
+....................................................................................
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Query{
+  hello(name:String!):String
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        hello(parent, args, contextValue, info) {
+            console.log(args)
+            return `Welcome to ${args.name}`
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+query($name: String!) {
+   hello(name: $name)
+}
+variable
+{
+  "name": null
+}
+
+Response:
+{
+  "data": {},
+  "errors": [
+    {
+      "message": "Variable \"$name\" of non-null type \"String!\" must not be null.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 7
+        }
+      ],
+..................................................................................
+			    How to handle complex args and parameter
+....................................................................................
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Mock users
+const USERS = [
+    {
+        id: 1,
+        firstName: "Subramanian",
+        lastName: "Murugan",
+        age: 10,
+        points: 100,
+        status: true
+    },
+    {
+        id: 2,
+        firstName: "Geetha",
+        lastName: "Subramanian",
+        age: 30,
+        points: 900,
+        status: true
+    },
+    {
+        id: 4,
+        firstName: "Hema",
+        lastName: "Chandran",
+        age: 30,
+        points: 900,
+        status: true
+    }
+
+]
+//Define schema
+const typeDefs = `
+ type User {
+    id:ID!
+    firstName:String
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+ }
+ type Query {
+    users:[User!]!
+    user(id:ID!):User
+ }
+`
+const resolvers = {
+    //Query 
+    Query: {
+        users() {
+            return USERS
+        },
+        user(_, args) {
+            return USERS.find(user => {
+                return user.id === +args.id
+            })
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+
+Client Side:
+query UserById($id: ID!, $userId: ID!) {
+  user(id: $userId) {
+    firstName
+    lastName
+  }
+}
+{
+  "userId": 1
+}
+Response:
+{
+  "data": {
+    "user": {
+      "firstName": "Subramanian",
+      "lastName": "Murugan"
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
