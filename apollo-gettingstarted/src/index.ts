@@ -1,47 +1,57 @@
 import { ApolloServer } from "@apollo/server"
 import { startStandaloneServer } from '@apollo/server/standalone'
 
-//Mock users
-const USERS = [
-    {
-        id: 1,
-        firstName: "Subramanian",
-        lastName: "Murugan",
-        age: 10,
-        points: 100,
-        status: true
-    },
-    {
-        id: 2,
-        firstName: "Geetha",
-        lastName: "Subramanian",
-        age: 30,
-        points: 900,
-        status: true
-    },
-    {
-        id: 4,
-        firstName: "Hema",
-        lastName: "Chandran",
-        age: 30,
-        points: 900,
-        status: true
-    }
+
+//mock data
+const USERS = [{
+    id: 1,
+    name: 'A',
+    email: 'a@gmail.com'
+},
+{
+    id: 2,
+    name: 'B',
+    email: 'b@gmail.com'
+},
+{
+    id: 3,
+    name: 'C',
+    email: 'c@gmail.com'
+}
 
 ]
+
+//Address
+const ADDRESS = [{
+    city: 'CBE',
+    state: 'TN',
+    id: 1 //link field
+},
+{
+    city: 'BNG',
+    state: 'KA',
+    id: 2 //link field
+},
+{
+    city: 'NY',
+    state: 'NY',
+    id: 3 //link field
+},
+]
+
 //Define schema
 const typeDefs = `
+ type Address {
+    city:String    
+ }
  type User {
     id:ID!
-    firstName:String
-    lastName:String
-    age:Int
-    points:Float
-    status:Boolean
+    name:String
+    email:String 
+    address:Address # api
  }
  type Query {
     users:[User!]!
-    user(id:ID!):User
  }
 `
 const resolvers = {
@@ -49,10 +59,13 @@ const resolvers = {
     Query: {
         users() {
             return USERS
-        },
-        user(_, args) {
-            return USERS.find(user => {
-                return user.id === +args.id
+        }
+    },
+    User: {
+        address(parent) {
+            console.log(parent)
+            return ADDRESS.find(address => {
+                return address.id === parent.id
             })
         }
     }
