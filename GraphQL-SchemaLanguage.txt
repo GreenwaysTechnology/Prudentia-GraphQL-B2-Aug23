@@ -1880,10 +1880,39 @@ Response:
     ]
   }
 }
+.....................................................................................
 
+Lab:
+ const libraries= [{branch:'a'} ,{branch:'b'} ]
+ const books = [{title:'title',author:'author',branch:'a'}]
+ const authors = [{id:1,author:'s',title:'title'}]
 
+ type Library{
+   branch:String!
+   books:[Book!]
+ }
+ type Book {
+  title:String!
+  author:Author!
+ }
+ type Author {
+    name:String!
+ }
+ type Query {
+    libraries:[Library]
+ }
 
+ query GetBooksByLibrary {
+   libraries {
+     books { 
+	title
+        author {
+	   name
+        }
+       }
+   }
 
+ }
 
 
 
