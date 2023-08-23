@@ -5,8 +5,8 @@ import { startStandaloneServer } from '@apollo/server/standalone'
 const typeDefs = `
 
 type User {
-    id:ID!
-    firstName:String!
+    id:ID
+    firstName:String
     lastName:String
     age:Int
     points:Float
@@ -14,7 +14,7 @@ type User {
 }
 
 type Query{
-   user:User!    
+   user:User    
 }
 
 `
@@ -22,15 +22,14 @@ const resolvers = {
     //Query 
     Query: {
         user() {
-            // return null;
             return {
-               id: 1,                 
+                id: 1,
                 firstName: "Subramanian",
                 lastName: "Murugan",
                 age: 10,
                 points: 100,
+                status: true
             }
-
         }
     }
 

@@ -3,34 +3,25 @@ import { startStandaloneServer } from '@apollo/server/standalone'
 
 //Define schema
 const typeDefs = `
-
-type User {
-    id:ID!
-    firstName:String!
-    lastName:String
-    age:Int
-    points:Float
-    status:Boolean
-}
-
 type Query{
-   user:User!    
+    hello:String
+    active:Boolean
+    value:Int
 }
 
 `
+//Biz logic for api (hello)
 const resolvers = {
     //Query 
     Query: {
-        user() {
-            // return null;
-            return {
-               id: 1,                 
-                firstName: "Subramanian",
-                lastName: "Murugan",
-                age: 10,
-                points: 100,
-            }
-
+        hello() {
+            return "Hello"
+        },
+        active() {
+            return true
+        },
+        value() {
+            return 100
         }
     }
 

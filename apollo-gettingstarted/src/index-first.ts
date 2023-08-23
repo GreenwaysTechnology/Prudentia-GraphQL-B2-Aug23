@@ -3,37 +3,26 @@ import { startStandaloneServer } from '@apollo/server/standalone'
 
 //Define schema
 const typeDefs = `
-
-type User {
-    id:ID!
-    firstName:String!
-    lastName:String
-    age:Int
-    points:Float
-    status:Boolean
-}
-
 type Query{
-   user:User!    
+    """
+      This is hello api which returns Hello Graphql!
+    """
+    hello:String
 }
 
 `
+//Biz logic for api (hello)
 const resolvers = {
     //Query 
     Query: {
-        user() {
-            // return null;
-            return {
-               id: 1,                 
-                firstName: "Subramanian",
-                lastName: "Murugan",
-                age: 10,
-                points: 100,
-            }
-
+        //method/api implementation
+        hello() {
+            return "Hello GraphQl!"
         }
     }
+    //Mutation
 
+    //Subscription
 }
 const server = new ApolloServer({
     typeDefs: typeDefs,

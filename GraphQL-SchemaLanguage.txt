@@ -637,6 +637,15 @@ package.json - scripts configuration
     "start": "npm run compile && node ./dist/index.js"
   }
 
+if you want to start server and compiler in watch mode
+
+npm install --save-dev tsc-watch
+
+"watch": "tsc-watch --onSuccess \"node ./dist/index.js\""
+
+npm run watch
+
+
 Write code inside src/index.ts
 .....................................................................................
 
@@ -676,8 +685,425 @@ const resolvers = {
     //Subscription
 }
 
+3.We need to deploy 
+   Parse schema, bind schema with Resolvers
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+3.1.we need to create instance of ApolloServer and pass schema and resolver as configuration.
+
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+
+3.2.//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Ready at ${url}`)
 
 
+Final  code:
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+type Query{
+    hello:String
+}
+
+`
+//Biz logic for api (hello)
+const resolvers = {
+    //Query 
+    Query: {
+        //method/api implementation
+        hello() {
+            return "Hello GraphQl!"
+        }
+    }
+    //Mutation
+
+    //Subscription
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Ready at ${url}`)
+....................................................................................
+			 Descriptions(docStrings)
+...................................................................................
+Graphql schema definitions supports markdown enabled documentation strings called "descriptions".
+
+This helps consumers of your graph discover fields and learn how to use them.
+
+""comments"" => slingle line comment
+"""multiline comments """
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+type Query{
+    """
+      This is hello api which returns Hello Graphql!
+    """
+    hello:String
+}
+
+`
+//Biz logic for api (hello)
+const resolvers = {
+    //Query 
+    Query: {
+        //method/api implementation
+        hello() {
+            return "Hello GraphQl!"
+        }
+    }
+    //Mutation
+
+    //Subscription
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+.....................................................................................
+				Default Resolver
+.....................................................................................
+if you define query in the schema defintion, if you dont define resolver, the Apollo provides default Resolver which always returns null
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+type Query{
+    """
+      This is hello api which returns Hello Graphql!
+    """
+    hello:String
+}
+
+`
+//Biz logic for api (hello)
+const resolvers = {
+    //Query 
+    Query: {
+     
+    }
+  
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+client side:
+query HelloQuery {
+  hello
+}
+
+{
+  "data": {
+    "hello": null
+  }
+}
+.....................................................................................
+			  Multiple Apis
+.....................................................................................
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+type Query{
+    hello:String
+    active:Boolean
+    value:Int
+}
+
+`
+//Biz logic for api (hello)
+const resolvers = {
+    //Query 
+    Query: {
+        hello() {
+            return "Hello"
+        },
+        active() {
+            return true
+        },
+        value() {
+            return 100
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+client side:
+
+query HelloQuery {
+  active
+}
+
+{
+  "data": {
+    "active": true
+  }
+}
+...................................................................................
+			Object Types and Queries
+....................................................................................
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type User {
+    id:ID
+    firstName:String
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+}
+
+type Query{
+   user:User    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        user() {
+            return {
+                id: 1,
+                firstName: "Subramanian",
+                lastName: "Murugan",
+                age: 10,
+                points: 100,
+                status: true
+            }
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+
+Client Side:
+
+query getUserInfo {
+  user {
+    id
+    firstName
+    lastName
+    points
+    status
+  }
+}
+Response:
+{
+  "data": {
+    "user": {
+      "id": "1",
+      "firstName": "Subramanian",
+      "lastName": "Murugan",
+      "points": 100,
+      "status": true
+    }
+  }
+}
+.....................................................................................
+			  Null and Not Null
+....................................................................................
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type User {
+    id:ID
+    firstName:String
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+}
+
+type Query{
+   user:User!    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        user() {
+            return null;
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+
+In the above code
+
+The schema defines rule that user api's return type must not be null.
+type Query{
+   user:User!    
+}
+In the resolver if you return null
+
+const resolvers = {
+    //Query 
+    Query: {
+        user() {
+            return null;
+        }
+    }
+
+}
+
+Client side:
+query getUserInfo {
+  user {
+    id
+    firstName
+    lastName
+    points
+    status
+  }
+}
+
+Response:
+{
+  "data": {},
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field Query.user.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "user"
+      ],
+      "extensions": {
+        "code": "INTERNAL_SERVER_ERROR",
+        "stacktrace": [
+          "Error: Cannot return null for non-nullable field Query.user.",
+          "    at completeValue (E:\\session\\Prudentia\\B2\\apollo-gettingstarted\\node_modules\\graphql\\execution\\execute.js:605:13)",
+          "    at executeField (E:\\session\\Prudentia\\B2\\apollo-gettingstarted\\node_modules\\graphql\\execution\\execute.js:500:19)",
+          "    at executeFields (E:\\session\\Prudentia\\B2\\apollo-gettingstarted\\node_modules\\graphql\\execution\\execute.js:414:22)",
+          "    at executeOperation (E:\\session\\Prudentia\\B2\\apollo-gettingstarted\\node_modules\\graphql\\execution\\execute.js:344:14)",
+          "    at execute (E:\\session\\Prudentia\\B2\\apollo-gettingstarted\\node_modules\\graphql\\execution\\execute.js:136:20)",
+          "    at executeIncrementally (file:///E:/session/Prudentia/B2/apollo-gettingstarted/node_modules/@apollo/server/dist/esm/incrementalDeliveryPolyfill.js:21:12)",
+          "    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+          "    at async execute (file:///E:/session/Prudentia/B2/apollo-gettingstarted/node_modules/@apollo/server/dist/esm/requestPipeline.js:226:37)",
+          "    at async processGraphQLRequest (file:///E:/session/Prudentia/B2/apollo-gettingstarted/node_modules/@apollo/server/dist/esm/requestPipeline.js:155:32)",
+          "    at async internalExecuteOperation (file:///E:/session/Prudentia/B2/apollo-gettingstarted/node_modules/@apollo/server/dist/esm/ApolloServer.js:603:16)"
+        ]
+      }
+    }
+  ]
+}
+
+What if fields are not null?
+type User {
+    id:ID!
+    firstName:String
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+}
+
+In the resolver:
+Query: {
+        user() {
+            // return null;
+            return {
+               // id: null,                 
+                firstName: "Subramanian",
+                lastName: "Murugan",
+                age: 10,
+                points: 100,
+                status: true
+            }
+
+        }
+    }
+
+if you dont add or field value is null, then server will throw an error.
+....................................................................................
 
 
 
