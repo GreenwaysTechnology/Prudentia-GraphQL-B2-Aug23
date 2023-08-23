@@ -1,87 +1,93 @@
-import { ApolloServer } from "@apollo/server"
-import { startStandaloneServer } from '@apollo/server/standalone'
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
 
+const libraries = [
+  {
+    branch: 'downtown',
+  },
+  {
+    branch: 'riverside',
+  },
+];
 
-//mock data
-const USERS = [{
-    id: 1,
-    name: 'A',
-    email: 'a@gmail.com'
-},
-{
-    id: 2,
-    name: 'B',
-    email: 'b@gmail.com'
-},
-{
-    id: 3,
-    name: 'C',
-    email: 'c@gmail.com'
-}
+// The branch field of a book indicates which library has it in stock
+const books = [
+  {
+    title: 'The Awakening',
+    author: 'Kate Chopin',
+    branch: 'riverside', //link 
+  },
+  {
+    title: 'City of Glass',
+    author: 'Paul Auster',
+    branch: 'downtown', // link
+  },
+];
 
-]
+// Schema definition
+const typeDefs = `#graphql
+  # A library has a branch and books
+  type Library {
+    branch: String!
+    books: [Book!]
+  }
 
-//Address
-const ADDRESS = [{
-    city: 'CBE',
-    state: 'TN',
-    id: 1 //link field
-},
-{
-    city: 'BNG',
-    state: 'KA',
-    id: 2 //link field
-},
-{
-    city: 'NY',
-    state: 'NY',
-    id: 3 //link field
-},
-]
+  # A book has a title and author
+  type Book {
+    title: String!
+    author: Author!
+  }
 
-//Define schema
-const typeDefs = `
- type Address {
-    city:String    
- }
- type User {
-    id:ID!
-    name:String
-    email:String 
-    address:Address # api
- }
- type Query {
-    users:[User!]!
- }
-`
+  # An author has a name
+  type Author {
+    name: String!
+  }
+
+  # Queries can fetch a list of libraries
+  type Query {
+    libraries: [Library]
+  }
+`;
+
+// Resolver map
 const resolvers = {
-    //Query 
-    Query: {
-        users() {
-            return USERS
-        }
+  Query: {
+    libraries() {
+      // Return our hardcoded array of libraries
+      return libraries;
     },
-    User: {
-        address(parent) {
-            console.log(parent)
-            return ADDRESS.find(address => {
-                return address.id === parent.id
-            })
-        }
-    }
+  },
+  Library: {
+    books(parent) {
+      // Filter the hardcoded array of books to only include
+      // books that are located at the correct branch
+      return books.filter((book) => book.branch === parent.branch);
+    },
+  },
+  Book: {
+    // The parent resolver (Library.books) returns an object with the
+    // author's name in the "author" field. Return a JSON object containing
+    // the name, because this field expects an object.
+    author(parent) {
+      return {
+        name: parent.author,
+      };
+    },
+  },
 
-}
+  // Because Book.author returns an object with a "name" field,
+  // Apollo Server's default resolver for Author.name will work.
+  // We don't need to define one.
+};
+
+// Pass schema definition and resolvers to the
+// ApolloServer constructor
 const server = new ApolloServer({
-    typeDefs: typeDefs,
-    resolvers: resolvers
-})
-//Start the Webserver and deploy
-const { url } = await startStandaloneServer(server, {
-    listen: {
-        port: 4000
-    }
-})
-console.log(`Apollo Server is Started at ${url}`)
+  typeDefs,
+  resolvers,
+});
 
+// Launch the server
+const { url } = await startStandaloneServer(server);
 
-
+console.log(`Server listening at: ${url}`);
