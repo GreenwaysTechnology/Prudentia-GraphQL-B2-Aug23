@@ -6,7 +6,7 @@ import { startStandaloneServer } from '@apollo/server/standalone'
 const typeDefs = `
 
 type Query{
-   skills:[String!]!    
+   skills:[String!]    
 }
 
 `
@@ -14,10 +14,10 @@ const resolvers = {
     //Query 
     Query: {
         skills() {
-            //return [] //-valid
-            //return ['graphql'] //-valid
-            //return null //- invalid
-            return [null] //invalid
+            //return []
+            //return ['graphql']
+            //return null
+            return [null]
         }
     }
 

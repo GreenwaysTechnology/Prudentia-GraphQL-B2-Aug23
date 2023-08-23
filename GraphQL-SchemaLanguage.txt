@@ -1104,15 +1104,354 @@ Query: {
 
 if you dont add or field value is null, then server will throw an error.
 ....................................................................................
+				 Collections
+....................................................................................
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Mock users
+const USERS = [
+    {
+        id: 1,
+        firstName: "Subramanian",
+        lastName: "Murugan",
+        age: 10,
+        points: 100,
+        status: true
+    },
+    {
+        id: 2,
+        firstName: "Geetha",
+        lastName: "Subramanian",
+        age: 30,
+        points: 900,
+        status: true
+    },
+    {
+        id: 4,
+        firstName: "Hema",
+        lastName: "Chandran",
+        age: 30,
+        points: 900,
+        status: true
+    }
+
+]
+
+//Define schema
+const typeDefs = `
+
+type User {
+    id:ID!
+    firstName:String!
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+}
+
+type Query{
+   users:[User]    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        users() {
+            return USERS
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+Client Side:
+
+query GetUsers {
+  users {
+    id
+    firstName
+    lastName
+    age
+  }
+}
+
+Response:
+{
+  "data": {
+    "users": [
+      {
+        "id": "1",
+        "firstName": "Subramanian",
+        "lastName": "Murugan",
+        "age": 10
+      },
+      {
+        "id": "2",
+        "firstName": "Geetha",
+        "lastName": "Subramanian",
+        "age": 30
+      },
+      {
+        "id": "4",
+        "firstName": "Hema",
+        "lastName": "Chandran",
+        "age": 30
+      }
+    ]
+  }
+}
+................................................................................
+			   Collections and null
+.................................................................................
+
+Syntax:
+  
+  products:[Product!]
+  products:[Product]! 
+  products:[Product!]!
+
+products:[Product!]
+
+products:null - valid
+products:[] -valid
+products:[{id:1}] -valid
+products: [{id:1},null] - invalid
 
 
+eg:
+type Query{
+   skills:[String!]    
+}
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            return []
+        }
+    }
+
+}
+
+Client side:
+query getSkills {
+  skills
+}
+{
+  "data": {
+    "skills": []
+  }
+}
+
+const typeDefs = `
+
+type Query{
+   skills:[String!]    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            //return []
+            return ['graphql']
+        }
+    }
+
+}
+Client side:
+query getSkills {
+  skills
+}
+{
+  "data": {
+    "skills": [
+      "graphql"
+    ]
+  }
+}
+...
+
+type Query{
+   skills:[String!]    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            //return []
+            //return ['graphql']
+            return null
+        }
+    }
+
+}
+query getSkills {
+  skills
+}
+{
+  "data": {
+    "skills": null
+  }
+}
+
+...
+const typeDefs = `
+
+type Query{
+   skills:[String!]    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            //return []
+            //return ['graphql']
+            //return null
+            return [null]
+        }
+    }
+
+}
+Response:
+{
+  "data": {
+    "skills": null
+  },
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field Query.skills.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+]
+...................................................................................
+
+products:[String]!
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
 
 
+//Define schema
+const typeDefs = `
+
+type Query{
+   skills:[String]!    
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            //return [] -valid
+            //return ['graphql'] -valid
+            //return null - invalid
+            //return [null] //valid
+        }
+    }
+
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+query getSkills {
+  skills
+}
+{
+  "data": {
+    "skills": [
+      null
+    ]
+  }
+}
+..................................................................................
+
+products:[String!]!
+ 
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
 
 
+//Define schema
+const typeDefs = `
 
+type Query{
+   skills:[String!]!    
+}
 
+`
+const resolvers = {
+    //Query 
+    Query: {
+        skills() {
+            //return [] //-valid
+            //return ['graphql'] //-valid
+            //return null //- invalid
+            return [null] //invalid
+        }
+    }
 
+}
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+query getSkills {
+  skills
+}
+
+{
+  "data": {},
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field Query.skills.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+]
+.....................................................................................
 
 
 

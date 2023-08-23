@@ -1,23 +1,36 @@
 import { ApolloServer } from "@apollo/server"
 import { startStandaloneServer } from '@apollo/server/standalone'
 
-
 //Define schema
 const typeDefs = `
 
+type User {
+    id:ID!
+    firstName:String!
+    lastName:String
+    age:Int
+    points:Float
+    status:Boolean
+}
+
 type Query{
-   skills:[String!]!    
+   user:User!    
 }
 
 `
 const resolvers = {
     //Query 
     Query: {
-        skills() {
-            //return [] //-valid
-            //return ['graphql'] //-valid
-            //return null //- invalid
-            return [null] //invalid
+        user() {
+            // return null;
+            return {
+               id: 1,                 
+                firstName: "Subramanian",
+                lastName: "Murugan",
+                age: 10,
+                points: 100,
+            }
+
         }
     }
 
