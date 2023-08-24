@@ -1,96 +1,57 @@
-import { RESTDataSource } from "@apollo/datasource-rest";
 import { ApolloServer } from "@apollo/server"
 import { startStandaloneServer } from '@apollo/server/standalone'
+import { PrismaClient } from '@prisma/client'
+import { prisma } from "./database.js"
 
-//Type class
-export class Book {
-    id: number;
-    title: string
-    author: string
-}
-
-export class BooksAPI extends RESTDataSource {
-    constructor() {
-        super()
-        this.baseURL = "http://localhost:3000/"
-    }
-    //apis
-    async getBooks() {
-        return this.get<Book[]>(`books`)
-    }
-    //books by id
-    async book(id: number) {
-        return this.get<Book>(`books/${id}`)
-    }
-    //save
-    async postBook(book: Book) {
-        return this.post<Book>(`books`, { body: book }).then(res => res)
-    }
-    //update 
-    async updateBook(bookId: number, book: Book) {
-        return this.put<Book>(`books/${bookId}`, { body: book }).then(res => res)
-    }
-
-}
 //Define schema
 const typeDefs = `
 
-type Book {
-    id:Int
-    title:String
-    author:String
+type User {
+   id:Int
+   email:String
+   name:String
+   createdAt:String
 }
-type Query{
-   books:[Book]
-   book(id:Int):Book
+type Query {
+    users:[User]
 }
-input BookInput{
-    id:Int
-    title:String!
-    author:String!
-}
-input BookUpdateInput {
-    title:String!
-    author:String!
+input UserInput {
+    email:String
+    name:String
+    
 }
 type Mutation {
-    addBook(input:BookInput):Book
-    updateBook(id:Int!,input:BookUpdateInput):Book
+    createUser(user:UserInput):User
 }
 `
-//
+
 const resolvers = {
     //Query 
     Query: {
-        //Books
-        async books(parent, args, ctx) {
-            return ctx.dataSources.booksAPI.getBooks()
-        },
-        //Book by id
-        async book(parent, args, ctx) {
-            const id = +args.id
-            return ctx.dataSources.booksAPI.book(id)
+        async users(parent, args, context, info) {
+            return context.dataSources.db.user.findMany({})
         }
     },
     Mutation: {
-        //create Book
-        async addBook(parent, args, ctx) {
-            const { input } = args;
-            return ctx.dataSources.booksAPI.postBook(input)
-        },
-        //update Book
-        async updateBook(parent, args, ctx) {
-            const { id, input } = args
-            return ctx.dataSources.booksAPI.updateBook(+id, input)
+        async createUser(parent, args, contxt, info) {
+            const { user } = args
+            return await contxt.dataSources.db.user.create({
+                data: {
+                    name: user.name,
+                    email: user.email,
+                    createdAt: new Date()
+                }
+            })
         }
     }
+
 
 }
 
 //context Type
 type MyContext = {
     dataSources: {
-        booksAPI: BooksAPI
+        db: PrismaClient
     }
 }
 
@@ -106,9 +67,12 @@ const { url } = await startStandaloneServer(server, {
     context: async () => {
         return {
             dataSources: {
-                booksAPI: new BooksAPI()
+                db: prisma
             }
         }
     }
 })
 console.log(`Apollo Server is Started at ${url}`)
+
+
+

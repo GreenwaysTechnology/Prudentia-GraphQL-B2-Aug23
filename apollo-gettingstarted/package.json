@@ -15,10 +15,12 @@
   "dependencies": {
     "@apollo/datasource-rest": "^6.0.1",
     "@apollo/server": "^4.9.1",
+    "@prisma/client": "^5.2.0",
     "graphql": "^16.8.0"
   },
   "devDependencies": {
     "@types/node": "^20.5.3",
+    "prisma": "^5.2.0",
     "tsc-watch": "^6.0.4",
     "typescript": "^5.1.6"
   }

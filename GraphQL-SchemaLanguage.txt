@@ -2672,9 +2672,244 @@ variables;
     "author": "Subramanian"
   }
 }
+....................................................................................
+				Database integration
+....................................................................................
+
+Steps:
+1.setup any node based orm - Prisma
+2.Select database - mysql,postgresql,sqlite.
+3.Write ORM Models 
+4.Write Datasource 
+5.Declare Type definitions
+6.Write Resolver
+
+
+Setup Database:
+ -Postgresql
+docker-compose.yml
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    environment:
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=db_password
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+volumes:
+  postgres:
+
+prisma setup:
+E:\session\Prudentia\B2\apollo-gettingstarted>npx prisma init
+Need to install the following packages:
+  prisma@5.2.0
+Ok to proceed? (y)
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb.
+3. Run npx prisma db pull to turn your database schema into a Prisma schema.
+4. Run npx prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+
+.env file
+DATABASE_URL="postgresql://db_user:db_password@localhost:5432/mydb?schema=public"
+
+create and migrating the database with Prisma:
+..............................................
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+..........................
+Before migration, ensure that database is running.
+
+start database
+E:\session\Prudentia\B2\apollo-gettingstarted>docker compose up
+
+Database migration:
+
+E:\session\Prudentia\B2\apollo-gettingstarted>npx prisma migrate dev
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "mydb", schema "public" at "localhost:5432"
+
+PostgreSQL database mydb created at localhost:5432
+
+√ Enter a name for the new migration: ...
+Applying migration `20230824175832_`
+
+The following migration(s) have been created and applied from new schema changes:
+
+migrations/
+  └─ 20230824175832_/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+
+added 2 packages, and audited 159 packages in 7s
+
+9 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+added 2 packages, and audited 161 packages in 10s
+
+9 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+✔ Generated Prisma Client (v5.2.0) to .\node_modules\@prisma\client in 91ms
+
+
+In order to communicate, prisma provides "Prisma client lib"
+
+npm i @prisma/client
+
+src/database.ts
+import { PrismaClient } from "@prisma/client";
+
+export const prisma = new PrismaClient()
+
+.................
+
+Final code:
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+import { PrismaClient } from '@prisma/client'
+import { prisma } from "./database.js"
+
+//Define schema
+const typeDefs = `
+
+type User {
+   id:Int
+   email:String
+   name:String
+   createdAt:String
+}
+type Query {
+    users:[User]
+}
+input UserInput {
+    email:String
+    name:String
+    
+}
+type Mutation {
+    createUser(user:UserInput):User
+}
+`
+
+const resolvers = {
+    //Query 
+    Query: {
+        async users(parent, args, context, info) {
+            return context.dataSources.db.user.findMany({})
+        }
+    },
+    Mutation: {
+        async createUser(parent, args, contxt, info) {
+            const { user } = args
+            return await contxt.dataSources.db.user.create({
+                data: {
+                    name: user.name,
+                    email: user.email,
+                    createdAt: new Date()
+                }
+            })
+        }
+    }
+
+
+}
+
+//context Type
+type MyContext = {
+    dataSources: {
+        db: PrismaClient
+    }
+}
+
+const server = new ApolloServer<MyContext>({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    },
+    context: async () => {
+        return {
+            dataSources: {
+                db: prisma
+            }
+        }
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
 
 
 
+Mutation:
+mutation saveUser($input: UserInput) {
+  createUser(user: $input) {
+    id
+    name
+    email
+  }
+}
+
+variable:
+{
+  "input": {
+    "name":"Subramanian",
+    "email":"subu@gmail.com"
+  }
+}
+Response:
+{
+  "data": {
+    "createUser": {
+      "id": 1,
+      "name": "Subramanian",
+      "email": "subu@gmail.com"
+    }
+  }
+}
+
+
+
+
+ 
 
 
 
