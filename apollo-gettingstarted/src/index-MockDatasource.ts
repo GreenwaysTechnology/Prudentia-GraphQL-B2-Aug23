@@ -27,9 +27,7 @@ const BOOKS = [{
 export class BookDataSource {
     //api
     getBooks() {
-        return new Promise((resolve, reject) => {
-            setTimeout(resolve, 5000, BOOKS)
-        })
+        return BOOKS
     }
 }
 
@@ -37,8 +35,8 @@ export class BookDataSource {
 const resolvers = {
     //Query 
     Query: {
-        async books(parent, args, ctx) {
-            return await ctx.dataSources.booksAPI.getBooks()
+        books(parent, args, ctx) {
+            return ctx.dataSources.booksAPI.getBooks()
         }
     }
 

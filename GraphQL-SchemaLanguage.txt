@@ -1516,7 +1516,7 @@ Response:
   }
 }
 .....................................................................................	
-				Not Null with args and return type
+			Not Null with args and return type
 ....................................................................................
 import { ApolloServer } from "@apollo/server"
 import { startStandaloneServer } from '@apollo/server/standalone'
@@ -2044,6 +2044,344 @@ query Lb {
     ]
   }
 }
+.....................................................................................
+			  Context and ContextValue
+.....................................................................................
+
+What is Context?
+ Context is Object which is part of Apollo Server
+
+Why Context?
+ Context can be used to share global data across the application
+
+What type of information we can share?
+  Global settings
+  Data Source Connections
+  Authentication headers and tokens
+
+Context object is accessed with help of "context" function which is part of standAloneServer.
+
+if you are working with typescript context object can be "typed"
+
+interface MyContext {
+   token:string
+   dataSource:Object
+}
+
+const server = new ApolloServer<MyContext>({typeDefs,resolvers})
+
+//Context function binding
+
+const {url} = await startStandaloneServer(server,{
+    listen: {
+      port:4000
+    },
+    context:async()=>{
+
+	//context object
+	return {
+	   token:'sometoken'
+   	   dataSource:new Api()
+        }
+	
+    }
+
+ })
+
+How to access context object?
+ 
+  resolver(parent,args,contextValue,info){
+	contextValue.token
+         	
+  }
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Query{
+  hello(name:String!):String
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        hello(parent, args, ctx, info) {
+            console.log(args)
+            return `${ctx.greeting} to ${args.name}`
+        }
+    }
+
+}
+
+//context Type
+type MyContext = {
+    greeting: string
+    name: string
+}
+
+const server = new ApolloServer<MyContext>({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    },
+    context: async () => {
+        return {
+            greeting: 'Welcome',
+            name: 'Subramanian'
+        }
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+
+Client:
+query Query($name: String!) {
+  hello(name: $name)
+}
+
+{
+  "name": "Subramanian"
+}
+Response:
+{
+  "data": {
+    "hello": "Welcome to Subramanian"
+  }
+}
+....................................................................................
+				Data Sources and Context
+.....................................................................................
+
+What is Data Sources?
+ Where the data is kept.
+
+What can be data source?
+->Databases
+->Another api can be datasource to graphql
+  -REST SERVICE
+  -Grpc Services
+
+We are going to talk to  three data source implmentations
+
+1.Mock data datasource
+2.REST Datasource
+3.Database Datasource
+
+
+1.Mock DataSource
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Book {
+    title:String
+    author:String
+}
+type Query{
+   books:[Book]
+}
+
+`
+const BOOKS = [{
+    title: 'Graphql in Action',
+    author: 'a'
+},
+{
+    title: 'Typescript in Action',
+    author: 'b'
+}
+]
+
+//Data Source Class
+export class BookDataSource {
+    //api
+    getBooks() {
+        return BOOKS
+    }
+}
+
+
+const resolvers = {
+    //Query 
+    Query: {
+        books(parent, args, ctx) {
+            return ctx.dataSources.booksAPI.getBooks()
+        }
+    }
+
+}
+
+//context Type
+type MyContext = {
+    dataSources: {
+        booksAPI: BookDataSource
+    }
+}
+
+const server = new ApolloServer<MyContext>({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    },
+    context: async () => {
+        return {
+            dataSources: {
+                booksAPI: new BookDataSource()
+            }
+        }
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+query Books {
+  books {
+    author
+    title
+  }
+}
+
+Response:
+{
+  "data": {
+    "books": [
+      {
+        "author": "a",
+        "title": "Graphql in Action"
+      },
+      {
+        "author": "b",
+        "title": "Typescript in Action"
+      }
+    ]
+  }
+}
+.....................................................................................
+				Async Api
+.....................................................................................
+
+What if the api returns Promise?
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Book {
+    title:String
+    author:String
+}
+type Query{
+   books:[Book]
+}
+
+`
+const BOOKS = [{
+    title: 'Graphql in Action',
+    author: 'a'
+},
+{
+    title: 'Typescript in Action',
+    author: 'b'
+}
+]
+
+//Data Source Class
+export class BookDataSource {
+    //api
+    getBooks() {
+        return new Promise((resolve, reject) => {
+            setTimeout(resolve, 5000, BOOKS)
+        })
+    }
+}
+
+
+const resolvers = {
+    //Query 
+    Query: {
+        async books(parent, args, ctx) {
+            return await ctx.dataSources.booksAPI.getBooks()
+        }
+    }
+
+}
+
+//context Type
+type MyContext = {
+    dataSources: {
+        booksAPI: BookDataSource
+    }
+}
+
+const server = new ApolloServer<MyContext>({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    },
+    context: async () => {
+        return {
+            dataSources: {
+                booksAPI: new BookDataSource()
+            }
+        }
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+
+Task to be Implemented:
+1.Find Books Byid
+2.Save Book
+3.Update Book
+4.Remove Book
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
