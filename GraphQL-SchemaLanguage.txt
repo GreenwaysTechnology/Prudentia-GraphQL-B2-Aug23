@@ -3062,7 +3062,42 @@ console.log(`Apollo Server is Started at ${url}`)
 
 
 
+Client Side:
+Request Type:
+query Books {
+  books {
+    __typename
+    title
+    ... on TextBook {
+      courses {
+        name
+      }
+    }
+    ... on ColoringBook {
+      colors
+    }
+  }
+}
 
+Response:
+{
+  "data": {
+    "books": [
+      {
+        "__typename": "TextBook",
+        "title": "Graphql",
+        "courses": [
+          {
+            "name": "IT"
+          }
+        ]
+      }
+    ]
+  }
+}
+.....................................................................................
+			 How to read Http Headers
+....................................................................................
 
 			
 
