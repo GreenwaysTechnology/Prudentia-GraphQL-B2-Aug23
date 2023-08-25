@@ -3098,15 +3098,203 @@ Response:
 .....................................................................................
 			 How to read Http Headers
 ....................................................................................
+How to read Http headers, auth, custom headers?
 
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+
+//Define schema
+const typeDefs = `
+
+type Query{
+  hello(name:String!):String
+}
+
+`
+const resolvers = {
+    //Query 
+    Query: {
+        hello(parent, args, ctx, info) {
+            console.log(args)
+            return `${ctx.greeting} to ${args.name}`
+        }
+    }
+
+}
+
+//context Type
+type MyContext = {
+    greeting: string
+    name: string
+}
+
+const server = new ApolloServer<MyContext>({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+//Start the Webserver and deploy
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    },
+    context: async ({ req, res }) => {
+        //console.log(req.headers)
+        const token = req.headers.authorization
+        console.log(token)
+        return {
+            greeting: 'Welcome',
+            name: token
+        }
+    }
+})
+console.log(`Apollo Server is Started at ${url}`)
+.....................................................................................
+			 How to connect graphql from react
+.....................................................................................
+
+Steps:
+1.create new react project
 			
+npx create-react-app apllo-reactapp
 
+2.Apollo Client
+  =>Client is lib for react to connect graphql applications
+  =>It is more declarative, data fetching is more readable which offers three states 
+    data,loading,error.
+   =>It is powered with hooks "useQuery,useMutation,useSubscriptions"
+   =>It works any graphql implementations like java,C#...
 
+3.install apollo client depedency
 
+  npm install @apollo/client graphql
  
+4.Initialize the Apollo Client
+import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
+
+//ApolloClient objec 
+const client = new ApolloClient({
+    uri: 'http://localhost:4000/',
+    cache: new InMemoryCache()
+})
+
+4.Write query and test
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
+
+//ApolloClient objec 
+const client = new ApolloClient({
+    uri: 'http://localhost:4000/',
+    cache: new InMemoryCache()
+})
+
+//simple client 
+client.query({
+    query: gql`
+    query HelloQuery {
+        hello
+      }    
+    `
+}).then(res => console.log(res.data.hello))
 
 
+const App = props => {
+    return <div>
+        <h1>Graphql -Apollo Integration</h1>
+    </div>
+}
 
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+..................................................................................
+
+How to show result in the UI?
+
+Apollo provides the provider object
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from '@apollo/client';
+
+//ApolloClient objec 
+const client = new ApolloClient({
+    uri: 'http://localhost:4000/',
+    cache: new InMemoryCache()
+})
+
+const App = props => {
+    const HelloQuery = gql`
+        query HelloQuery {
+            hello
+        }
+`
+
+    const { loading, error, data } = useQuery(HelloQuery)
+
+    if (loading) {
+        return <p>Loading....</p>
+    }
+    if (error) {
+        return <p>Error</p>
+    }
+    return <div>
+        <h1>{data.hello}</h1>
+    </div>
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ApolloProvider client={client}>
+    <App />
+</ApolloProvider>);
+.....................................................................................
+How to fetch data based collections.
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from '@apollo/client';
+
+//ApolloClient objec 
+const client = new ApolloClient({
+    uri: 'http://localhost:4000/',
+    cache: new InMemoryCache()
+})
+
+const App = props => {
+    const BooksQuery = gql`
+        query Books {
+            books {
+             title
+            author
+        }
+}
+`
+
+    const { loading, error, data } = useQuery(BooksQuery)
+
+    if (loading) {
+        return <p>Loading....</p>
+    }
+    if (error) {
+        return <p>Error</p>
+    }
+    return <div>
+        <ul>
+            {data.books.map(book => {
+                return <li>{book.title} {book.author}</li>
+            })}
+        </ul>
+    </div>
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ApolloProvider client={client}>
+    <App />
+</ApolloProvider>);
+
+.....................................................................................
 
 
 
